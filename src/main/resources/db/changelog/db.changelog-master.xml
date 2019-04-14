@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.1"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.1
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.1.xsd">
+    <changeSet id="customers-table" author="Barb">
+        <createTable tableName="customers">
+            <column name="id" type="BINARY(16)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="email_address" type="VARCHAR2(64)">
+                <constraints unique="true"/>
+            </column>
+            <column name="first_name" type="VARCHAR2(128)"/>
+            <column name="last_name" type="VARCHAR2(128)"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

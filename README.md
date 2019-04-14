@@ -3,8 +3,9 @@
 This is a recruitment assignment application.
 
 ### Getting started
-Execute
+Execute `./mvnw clean spring-boot:run` in project root directory to start the app.
 
-`./mvnw clean spring-boot:run`
+Go to http://localhost:8080/swagger-ui.html to see available endpoints.
 
-in project directory to start the app.
+Execute `./mvnw clean test` to run tests.
+ 
