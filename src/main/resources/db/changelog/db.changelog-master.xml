@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-        xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.1"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.1
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.1.xsd">
-    <changeSet id="customers-table" author="Barb">
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet id="customers-table" author="biwils">
         <createTable tableName="customers">
-            <column name="id" type="BINARY(16)">
+            <column name="id" type="UUID">
                 <constraints primaryKey="true"/>
             </column>
             <column name="email_address" type="VARCHAR2(64)">
@@ -15,5 +15,39 @@
             <column name="first_name" type="VARCHAR2(128)"/>
             <column name="last_name" type="VARCHAR2(128)"/>
         </createTable>
+    </changeSet>
+    <changeSet id="rooms-table" author="biwils">
+        <createTable tableName="rooms">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="room_no" type="INT(8)"/>
+            <column name="price" type="NUMERIC(10,2)"/>
+            <column name="city" type="VARCHAR(64)"/>
+            <column name="hotel" type="VARCHAR(64)"/>
+        </createTable>
+        <addUniqueConstraint tableName="rooms" columnNames="room_no,city,hotel"/>
+    </changeSet>
+    <changeSet id="rooms_seed" author="biwils">
+        <loadData file="/db/changelog/seed-rooms.csv"
+                  tableName="rooms">
+        </loadData>
+    </changeSet>
+    <changeSet id="reservations_table" author="biwils">
+        <createTable tableName="reservations">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="customer_id" type="UUID"/>
+            <column name="room_id" type="UUID"/>
+            <column name="start" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="end" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="reservations" baseColumnNames="customer_id"
+                                 referencedTableName="customers" referencedColumnNames="id"
+                                 constraintName="fk_reservations"/>
+        <addForeignKeyConstraint baseTableName="reservations" baseColumnNames="room_id"
+                                 referencedTableName="rooms" referencedColumnNames="id"
+                                 constraintName="fk_rooms"/>
     </changeSet>
 </databaseChangeLog>

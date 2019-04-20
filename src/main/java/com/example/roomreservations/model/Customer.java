@@ -4,7 +4,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -20,7 +19,6 @@ import static java.util.UUID.randomUUID;
 public class Customer {
 
     @Id
-    @Column(columnDefinition = "BINARY(16)")
     private UUID id = randomUUID();
 
     private String emailAddress;

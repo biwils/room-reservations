@@ -14,13 +14,13 @@ class CustomerService {
 
     @Transactional
     public CustomerDto add(RegisterCustomerCmd registerCustomerCmd) {
+        //some email validation could be useful but is out of scope
         String emailAddress = registerCustomerCmd.getEmailAddress();
         customerRepository.findByEmailAddress(emailAddress).ifPresent(email -> {
             throw new EmailAddressAlreadyRegisteredException(emailAddress);
         });
-        Customer customer = new Customer(emailAddress, registerCustomerCmd.getFirstName(), registerCustomerCmd.getLastName());
-        Customer saved = customerRepository.save(customer);
-        return new CustomerDto(saved.getId(), saved.getEmailAddress(), saved.getFirstName(), saved.getLastName());
+        Customer customer = customerRepository.save(new Customer(emailAddress, registerCustomerCmd.getFirstName(), registerCustomerCmd.getLastName()));
+        return new CustomerDto(customer.getId(), customer.getEmailAddress(), customer.getFirstName(), customer.getLastName());
     }
 
 }
