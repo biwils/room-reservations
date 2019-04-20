@@ -57,6 +57,12 @@
             <artifactId>springfox-swagger-ui</artifactId>
             <version>2.9.2</version>
         </dependency>
+        <dependency>
+            <groupId>pl.pragmatists</groupId>
+            <artifactId>JUnitParams</artifactId>
+            <version>1.1.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
