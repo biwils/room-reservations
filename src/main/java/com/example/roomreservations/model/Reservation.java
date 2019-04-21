@@ -38,7 +38,6 @@ public class Reservation {
         this.endDate = endDate;
     }
 
-    //todo test
     boolean overlaps(Period period) {
         return new Period(startDate, endDate).overlaps(period);
     }

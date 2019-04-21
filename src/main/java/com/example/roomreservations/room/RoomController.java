@@ -26,7 +26,7 @@ public class RoomController {
         this.roomQueryService = roomQueryService;
     }
 
-    @GetMapping
+    @GetMapping(path = "/search")
     ResponseEntity<Page<RoomDto>> search(Pageable pageable,
                                          @RequestParam String city,
                                          @RequestParam Instant startDate,
@@ -34,7 +34,7 @@ public class RoomController {
                                          @RequestParam BigDecimal minPrice,
                                          @RequestParam BigDecimal maxPrice) {
         if (startDate.isBefore(now())) {
-            throw new IllegalArgumentException("Why would anyone want to book a room for the past?");
+            throw new SearchingForRoomInThePastException();
         }
         Period period = new Period(startDate, endDate);
         return new ResponseEntity<>(roomQueryService.find(pageable, period, city, minPrice, maxPrice), OK);

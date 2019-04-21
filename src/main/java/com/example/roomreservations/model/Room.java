@@ -42,7 +42,6 @@ public class Room {
         this.reservations = reservations;
     }
 
-    //todo test
     public boolean isAvailableWithin(Period period) {
         return reservations.stream()
                 .noneMatch(reservation -> reservation.overlaps(period));
