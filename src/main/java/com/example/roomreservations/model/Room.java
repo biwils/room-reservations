@@ -31,7 +31,7 @@ public class Room {
 
     private String hotel;
 
-    @OneToMany
+    @OneToMany(mappedBy = "roomId")
     private List<Reservation> reservations;
 
     public Room(Integer number, BigDecimal price, String city, String hotel, List<Reservation> reservations) {

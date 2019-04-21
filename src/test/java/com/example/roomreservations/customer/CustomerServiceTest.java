@@ -1,6 +1,7 @@
 package com.example.roomreservations.customer;
 
 import com.example.roomreservations.model.Customer;
+import com.example.roomreservations.model.CustomerFixture;
 import com.example.roomreservations.model.repository.CustomerRepository;
 import org.junit.Rule;
 import org.junit.Test;

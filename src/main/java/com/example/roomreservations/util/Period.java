@@ -8,23 +8,23 @@ import java.time.Instant;
 @Getter
 public class Period {
 
-    private Instant start;
+    private Instant startDate;
 
-    private Instant end;
+    private Instant endDate;
 
-    public Period(@NotNull Instant start, @NotNull Instant end) {
-        if (start.equals(end) || start.isAfter(end)) {
-            throw new InvalidPeriodException(start, end);
+    public Period(@NotNull Instant startDate, @NotNull Instant endDate) {
+        if (startDate.equals(endDate) || startDate.isAfter(endDate)) {
+            throw new InvalidPeriodException(startDate, endDate);
         }
-        this.start = start;
-        this.end = end;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     public boolean overlaps(Period other) {
-        return !this.end.isBefore(other.start)
-                && !this.end.equals(other.start)
-                && !this.start.equals(other.end)
-                && !this.start.isAfter(other.end);
+        return !this.endDate.isBefore(other.startDate)
+                && !this.endDate.equals(other.startDate)
+                && !this.startDate.equals(other.endDate)
+                && !this.startDate.isAfter(other.endDate);
     }
 
 }

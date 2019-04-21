@@ -40,8 +40,8 @@
             </column>
             <column name="customer_id" type="UUID"/>
             <column name="room_id" type="UUID"/>
-            <column name="start" type="TIMESTAMP WITH TIME ZONE"/>
-            <column name="end" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="start_date" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="end_date" type="TIMESTAMP WITH TIME ZONE"/>
         </createTable>
         <addForeignKeyConstraint baseTableName="reservations" baseColumnNames="customer_id"
                                  referencedTableName="customers" referencedColumnNames="id"

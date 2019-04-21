@@ -7,8 +7,8 @@ import java.time.Instant;
 @Value
 class PeriodDto {
 
-    private Instant start;
+    private Instant startDate;
 
-    private Instant end;
+    private Instant endDate;
 
 }

@@ -9,21 +9,12 @@ import org.junit.runner.RunWith;
 
 import java.time.Instant;
 
-import static java.time.Instant.parse;
+import static com.example.roomreservations.InstantsFixture.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.rules.ExpectedException.none;
 
 @RunWith(JUnitParamsRunner.class)
 public class PeriodTest {
-
-    private static final Instant JAN_1 = parse("2019-01-01T10:00:00Z");
-    private static final Instant JAN_3 = parse("2019-01-03T10:00:00Z");
-    private static final Instant JAN_5 = parse("2019-01-05T10:00:00Z");
-    private static final Instant JAN_7 = parse("2019-01-07T10:00:00Z");
-    private static final Instant JAN_9 = parse("2019-01-09T10:00:00Z");
-    private static final Instant JAN_11 = parse("2019-01-11T10:00:00Z");
-    private static final Instant JAN_13 = parse("2019-01-13T10:00:00Z");
-    private static final Instant JAN_15 = parse("2019-01-15T10:00:00Z");
 
     @Rule
     public ExpectedException exceptionRule = none();
@@ -31,10 +22,10 @@ public class PeriodTest {
 
     @Test
     @Parameters(method = "periods")
-    public void should_check_if_overlaps(Instant p1Start, Instant p1End, Instant p2Start, Instant p2End, boolean expected) {
+    public void should_check_if_overlaps(Instant p1StartDate, Instant p1EndDate, Instant p2StartDate, Instant p2EndDate, boolean expected) {
         // given
-        Period p1 = new Period(p1Start, p1End);
-        Period p2 = new Period(p2Start, p2End);
+        Period p1 = new Period(p1StartDate, p1EndDate);
+        Period p2 = new Period(p2StartDate, p2EndDate);
 
         // when
         boolean result = p1.overlaps(p2);
@@ -62,12 +53,12 @@ public class PeriodTest {
 
     @Test
     @Parameters(method = "instants")
-    public void should_not_construct_period(Instant start, Instant end) {
+    public void should_not_construct_period(Instant startDate, Instant endDate) {
         //given
         exceptionRule.expect(InvalidPeriodException.class);
 
         //when
-        new Period(start, end);
+        new Period(startDate, endDate);
 
         //then exception thrown
     }

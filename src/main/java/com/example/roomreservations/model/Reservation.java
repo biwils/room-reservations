@@ -27,19 +27,19 @@ public class Reservation {
 
     private UUID roomId;
 
-    private Instant start;
+    private Instant startDate;
 
-    private Instant end;
+    private Instant endDate;
 
-    public Reservation(UUID customerId, UUID roomId, Instant start, Instant end) {
+    public Reservation(UUID customerId, UUID roomId, Instant startDate, Instant endDate) {
         this.customerId = customerId;
         this.roomId = roomId;
-        this.start = start;
-        this.end = end;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     //todo test
-    public boolean overlaps(Period period) {
-        return new Period(start, end).overlaps(period);
+    boolean overlaps(Period period) {
+        return new Period(startDate, endDate).overlaps(period);
     }
 }

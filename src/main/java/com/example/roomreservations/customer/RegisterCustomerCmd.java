@@ -1,18 +1,19 @@
 package com.example.roomreservations.customer;
 
-import lombok.NonNull;
 import lombok.Value;
+
+import javax.validation.constraints.NotNull;
 
 @Value
 class RegisterCustomerCmd {
 
-    @NonNull
+    @NotNull
     private String emailAddress;
 
-    @NonNull
+    @NotNull
     private String firstName;
 
-    @NonNull
+    @NotNull
     private String lastName;
 
 }
