@@ -3,35 +3,44 @@ package com.example.roomreservations.customer;
 
 import com.example.roomreservations.BaseIntegrationTest;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.HttpStatus.CREATED;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 public class CustomerControllerIntegrationTest extends BaseIntegrationTest {
 
-    @Autowired
-    private CustomerController customerController;
-
     @Test
-    public void should_register_customer() {
+    public void should_register_customer() throws Exception {
         // given
         String emailAddress = "john@example.com";
         String firstName = "John";
         String lastName = "Doe";
         RegisterCustomerCmd registerCustomerCmd = new RegisterCustomerCmd(emailAddress, firstName, lastName);
 
+        RequestBuilder request = MockMvcRequestBuilders
+                .post("/customer")
+                .contentType(APPLICATION_JSON_UTF8_VALUE)
+                .content(objectMapper.writeValueAsString(registerCustomerCmd))
+                .accept(APPLICATION_JSON);
+
         // when
-        ResponseEntity<CustomerDto> result = customerController.register(registerCustomerCmd);
+        ResultActions result = mvc.perform(request);
 
         // then
-        assertThat(result.getStatusCode()).isEqualTo(CREATED);
-        assertThat(result.getBody().getId()).isNotNull();
-        assertThat(result.getBody().getEmailAddress()).isEqualTo(emailAddress);
-        assertThat(result.getBody().getFirstName()).isEqualTo(firstName);
-        assertThat(result.getBody().getLastName()).isEqualTo(lastName);
+        result
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", notNullValue()))
+                .andExpect(jsonPath("$.emailAddress", equalTo(emailAddress)))
+                .andExpect(jsonPath("$.firstName", equalTo(firstName)))
+                .andExpect(jsonPath("$.lastName", equalTo(lastName)));
     }
 
 }

@@ -10,9 +10,9 @@ import com.example.roomreservations.model.repository.ReservationRepository;
 import com.example.roomreservations.model.repository.RoomRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.Instant;
 
@@ -23,13 +23,14 @@ import static com.example.roomreservations.model.RoomFixture.cocoChanelSuite;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.HttpStatus.*;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8_VALUE;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 public class ReservationControllerIntegrationTest extends BaseIntegrationTest {
-
-    @Autowired
-    private ReservationController reservationController;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -41,7 +42,7 @@ public class ReservationControllerIntegrationTest extends BaseIntegrationTest {
     private ReservationRepository reservationRepository;
 
     @Test
-    public void should_find_customers_reservations() {
+    public void should_find_customers_reservations() throws Exception {
         // given
         Customer customer = johnDoe();
         customerRepository.save(customer);
@@ -50,18 +51,23 @@ public class ReservationControllerIntegrationTest extends BaseIntegrationTest {
         Reservation reservation = new Reservation(customer.getId(), room.getId(), JAN_1, JAN_3);
         reservationRepository.save(reservation);
 
+        RequestBuilder request = MockMvcRequestBuilders
+                .get("/reservation")
+                .header("customerId", customer.getId().toString())
+                .accept(APPLICATION_JSON);
+
         // when
-        ResponseEntity<Page<ReservationDto>> result = reservationController.findAll(PageRequest.of(0, 20), customer.getId());
+        ResultActions result = mvc.perform(request);
 
         // then
-        assertThat(result.getStatusCode()).isEqualTo(OK);
-        assertThat(result.getBody().getTotalElements()).isEqualTo(1);
-        assertThat(result.getBody().getTotalPages()).isEqualTo(1);
-        assertThat(result.getBody().getContent().get(0).getId()).isEqualTo(reservation.getId());
+        result
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id", equalTo(reservation.getId().toString())));
     }
 
     @Test
-    public void should_make_reservation() {
+    public void should_make_reservation() throws Exception {
         // given
         Customer customer = johnDoe();
         customerRepository.save(customer);
@@ -71,19 +77,27 @@ public class ReservationControllerIntegrationTest extends BaseIntegrationTest {
         Instant weekFromToday = now().plus(7, DAYS);
         AddReservationCmd addReservationCmd = new AddReservationCmd(customer.getId(), room.getId(), tomorrow, weekFromToday);
 
+        RequestBuilder request = MockMvcRequestBuilders
+                .post("/reservation")
+                .contentType(APPLICATION_JSON_UTF8_VALUE)
+                .content(objectMapper.writeValueAsString(addReservationCmd))
+                .accept(APPLICATION_JSON);
+
         // when
-        ResponseEntity<ReservationDto> result = reservationController.makeReservation(addReservationCmd);
+        ResultActions result = mvc.perform(request);
 
         // then
-        assertThat(result.getStatusCode()).isEqualTo(CREATED);
-        assertThat(result.getBody().getId()).isNotNull();
-        assertThat(result.getBody().getCustomerId()).isEqualTo(customer.getId());
-        assertThat(result.getBody().getRoomId()).isEqualTo(room.getId());
-        assertThat(result.getBody().getPeriod()).isEqualTo(new PeriodDto(tomorrow, weekFromToday));
+        result
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", notNullValue()))
+                .andExpect(jsonPath("$.customerId", equalTo(customer.getId().toString())))
+                .andExpect(jsonPath("$.roomId", equalTo(room.getId().toString())))
+                .andExpect(jsonPath("$.period.startDate", equalTo(tomorrow.toString())))
+                .andExpect(jsonPath("$.period.endDate", equalTo(weekFromToday.toString())));
     }
 
     @Test
-    public void should_cancel_reservation() {
+    public void should_cancel_reservation() throws Exception {
         // given
         Customer customer = johnDoe();
         customerRepository.save(customer);
@@ -92,11 +106,16 @@ public class ReservationControllerIntegrationTest extends BaseIntegrationTest {
         Reservation reservation = new Reservation(customer.getId(), room.getId(), JAN_1, JAN_3);
         reservationRepository.save(reservation);
 
+        RequestBuilder request = MockMvcRequestBuilders
+                .delete("/reservation/{reservationId}", reservation.getId())
+                .header("customerId", customer.getId().toString())
+                .accept(APPLICATION_JSON);
+
         // when
-        ResponseEntity<Void> result = reservationController.cancelReservation(reservation.getId(), customer.getId());
+        ResultActions result = mvc.perform(request);
 
         // then
-        assertThat(result.getStatusCode()).isEqualTo(NO_CONTENT);
+        result.andExpect(status().isNoContent());
         assertThat(reservationRepository.findById(reservation.getId())).isEmpty();
     }
 

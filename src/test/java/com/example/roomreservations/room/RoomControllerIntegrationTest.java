@@ -4,26 +4,25 @@ package com.example.roomreservations.room;
 import com.example.roomreservations.BaseIntegrationTest;
 import com.example.roomreservations.model.Room;
 import com.example.roomreservations.model.repository.RoomRepository;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.stream.IntStream;
 
-import static com.example.roomreservations.room.SearchingForRoomInThePastException.MESSAGE;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.rules.ExpectedException.none;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.OK;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 public class RoomControllerIntegrationTest extends BaseIntegrationTest {
@@ -35,31 +34,60 @@ public class RoomControllerIntegrationTest extends BaseIntegrationTest {
     private RoomRepository roomRepository;
 
     @Test
-    public void should_search_for_a_room() {
+    public void should_search_for_a_room() throws Exception {
         // given
         String city = "Dubai";
         IntStream.range(100, 115).forEach(i -> availableRoom(city, i));
         Instant tomorrow = now().plus(1, DAYS);
         Instant weekFromToday = now().plus(7, DAYS);
+        BigDecimal minPrice = new BigDecimal(100.00);
+        BigDecimal maxPrice = new BigDecimal(10000.00);
+
+        RequestBuilder firstPageRequest = MockMvcRequestBuilders
+                .get("/room/search")
+                .param("city", city)
+                .param("startDate", tomorrow.toString())
+                .param("endDate", weekFromToday.toString())
+                .param("minPrice", minPrice.toString())
+                .param("maxPrice", maxPrice.toString())
+                .param("page", "0")
+                .param("size", "10")
+                .accept(APPLICATION_JSON);
+
+        RequestBuilder secondPageRequest = MockMvcRequestBuilders
+                .get("/room/search")
+                .param("city", city)
+                .param("startDate", tomorrow.toString())
+                .param("endDate", weekFromToday.toString())
+                .param("minPrice", minPrice.toString())
+                .param("maxPrice", maxPrice.toString())
+                .param("page", "1")
+                .param("size", "10")
+                .accept(APPLICATION_JSON);
 
         // when
-        ResponseEntity<Page<RoomDto>> firstPage = roomController.search(PageRequest.of(0, 10), city, tomorrow, weekFromToday, new BigDecimal(100.00), new BigDecimal(10000.00));
-
+        ResultActions firstPageResult = mvc.perform(firstPageRequest);
 
         // then
-        assertThat(firstPage.getStatusCode()).isEqualTo(OK);
-        assertThat(firstPage.getBody().getContent()).hasSize(10);
-        assertThat(firstPage.getBody().getTotalElements()).isEqualTo(15);
-        assertThat(firstPage.getBody().getTotalPages()).isEqualTo(2);
+        firstPageResult
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(10)))
+                .andExpect(jsonPath("$.number", equalTo(0)))
+                .andExpect(jsonPath("$.totalElements", equalTo(15)))
+                .andExpect(jsonPath("$.totalPages", equalTo(2)));
 
         // when
-        ResponseEntity<Page<RoomDto>> secondPage = roomController.search(PageRequest.of(1, 10), city, tomorrow, weekFromToday, new BigDecimal(100.00), new BigDecimal(10000.00));
+        ResultActions secondPageResult = mvc.perform(secondPageRequest);
 
         // then
-        assertThat(secondPage.getStatusCode()).isEqualTo(OK);
-        assertThat(secondPage.getBody().getContent()).hasSize(5);
-        assertThat(secondPage.getBody().getTotalElements()).isEqualTo(15);
-        assertThat(secondPage.getBody().getTotalPages()).isEqualTo(2);
+        secondPageResult
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(5)))
+                .andExpect(jsonPath("$.number", equalTo(1)))
+                .andExpect(jsonPath("$.totalElements", equalTo(15)))
+                .andExpect(jsonPath("$.totalPages", equalTo(2)));
     }
 
     private void availableRoom(String city, Integer number) {
@@ -67,24 +95,29 @@ public class RoomControllerIntegrationTest extends BaseIntegrationTest {
         roomRepository.save(availableRoom);
     }
 
-    @Rule
-    public ExpectedException exceptionRule = none();
-
     @Test
-    public void should_not_search_in_the_past() {
+    public void should_not_search_in_the_past() throws Exception {
         // given
         Instant yesterday = now().minus(1, DAYS);
         Instant weekFromToday = now().plus(7, DAYS);
-        exceptionRule.expect(SearchingForRoomInThePastException.class);
-        exceptionRule.expectMessage(MESSAGE);
+        BigDecimal minPrice = new BigDecimal(100.00);
+        BigDecimal maxPrice = new BigDecimal(10000.00);
+
+        RequestBuilder request = MockMvcRequestBuilders
+                .get("/room/search")
+                .param("city", "Paris")
+                .param("startDate", yesterday.toString())
+                .param("endDate", weekFromToday.toString())
+                .param("minPrice", minPrice.toString())
+                .param("maxPrice", maxPrice.toString())
+                .accept(APPLICATION_JSON);
 
         // when
-        ResponseEntity<Page<RoomDto>> result = roomController.search(PageRequest.of(1, 10), "Paris", yesterday, weekFromToday, new BigDecimal(100.00), new BigDecimal(10000.00));
+        ResultActions result = mvc.perform(request);
 
         // then
-        assertThat(result.getStatusCode()).isEqualTo(FORBIDDEN);
-        System.out.println(result.toString());
-        assertThat(result.toString()).contains(MESSAGE);
+        result
+                .andExpect(status().isForbidden());
     }
 
 }
