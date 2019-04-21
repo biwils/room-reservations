@@ -142,4 +142,34 @@ public class ReservationServiceTest {
         // then exception thrown
     }
 
+    @Test
+    public void should_cancel_reservation() {
+        // given
+        UUID customerId = randomUUID();
+        Reservation reservation = new Reservation(customerId, randomUUID(), JAN_1, JAN_3);
+        UUID reservationId = reservation.getId();
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+
+        // when
+        reservationService.delete(reservationId, customerId);
+
+        // then no exception thrown
+    }
+
+    @Test
+    public void should_reject_canceling_reservation() {
+        // given
+        UUID customerId = randomUUID();
+        Reservation reservation = new Reservation(randomUUID(), randomUUID(), JAN_1, JAN_3);
+        UUID reservationId = reservation.getId();
+        when(reservationRepository.findById(reservationId)).thenReturn(Optional.of(reservation));
+        exceptionRule.expect(ReservationBelongsToDifferentCustomerException.class);
+        exceptionRule.expectMessage("Reservation " + reservationId + " doesn't belong to customer " + customerId);
+
+        // when
+        reservationService.delete(reservationId, customerId);
+
+        // then exception thrown
+    }
+
 }

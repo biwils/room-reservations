@@ -8,17 +8,16 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
 @RequestMapping(path = "/reservation", produces = APPLICATION_JSON_VALUE)
-class ReservationControlller {
+class ReservationController {
 
     private ReservationService reservationService;
 
-    ReservationControlller(ReservationService reservationService) {
+    ReservationController(ReservationService reservationService) {
         this.reservationService = reservationService;
     }
 
@@ -31,6 +30,12 @@ class ReservationControlller {
     @PostMapping
     ResponseEntity<ReservationDto> makeReservation(@RequestBody @Valid AddReservationCmd addReservationCmd) {
         return new ResponseEntity<>(reservationService.add(addReservationCmd), CREATED);
+    }
+
+    @DeleteMapping(path = "/{reservationId}")
+    ResponseEntity<Void> cancelReservation(@PathVariable UUID reservationId, @RequestHeader("customerId") UUID customerId) {
+        reservationService.delete(reservationId, customerId);
+        return new ResponseEntity<>(NO_CONTENT);
     }
 
 }

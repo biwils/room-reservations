@@ -66,4 +66,15 @@ public class ReservationService {
         throw new RoomUnavailableDuringPeriodException(roomId, period);
     }
 
+    @Transactional
+    public void delete(UUID reservationId, UUID customerId) {
+        reservationRepository.findById(reservationId).ifPresent(reservation -> {
+            if (customerId.equals(reservation.getCustomerId())) {
+                reservationRepository.delete(reservation);
+            } else {
+                throw new ReservationBelongsToDifferentCustomerException(reservationId, customerId);
+            }
+        });
+    }
+
 }
