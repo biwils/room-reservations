@@ -16,6 +16,6 @@ Database gets its tables created and populated with sample data upon startup wit
 
 To play with the api go to http://localhost:8080/swagger-ui.html.
 
-To run tests execute `./mvnw clean test` in project root directory.
+To run all tests execute `./mvnw clean integration-test` in project root directory.
 
 Have fun!
