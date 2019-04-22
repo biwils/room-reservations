@@ -48,6 +48,9 @@ public class CustomerServiceTest {
         // given
         RegisterCustomerCmd newCustomer = johnDoe();
         when(customerRepository.findByEmailAddress(newCustomer.getEmailAddress())).thenReturn(Optional.of(CustomerFixture.johnDoe()));
+        // If I had a choice in testing framework I'd use Spock which offers more elegant ways of testing exceptions.
+        // I could have used Junit 5 but I chose to use latest stable Spring Boot Starter which comes with Junit 4
+        // and I didn't want to mess up with excludes in pom just for the sake of a few test cases.
         exceptionRule.expect(EmailAddressAlreadyRegisteredException.class);
         exceptionRule.expectMessage("Customer with email address john@example.com is already registered");
 

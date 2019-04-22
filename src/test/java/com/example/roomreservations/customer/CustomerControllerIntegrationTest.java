@@ -18,6 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CustomerControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
+    // This is quite unpopular method naming convention (I mean the snake_case in Java) but I find it better readable when
+    // we treat tests as specs (and they tend to have more descriptive names than just a few words for which camelCase is good enough).
+    // However I'm not overly attached to it.
     public void should_register_customer() throws Exception {
         // given
         String emailAddress = "john@example.com";
