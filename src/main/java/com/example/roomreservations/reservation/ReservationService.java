@@ -1,6 +1,5 @@
 package com.example.roomreservations.reservation;
 
-import com.example.roomreservations.model.Customer;
 import com.example.roomreservations.model.Reservation;
 import com.example.roomreservations.model.Room;
 import com.example.roomreservations.model.repository.CustomerRepository;
@@ -14,13 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.toList;
 
-public class ReservationService {
+class ReservationService {
 
     private static final Function<Reservation, ReservationDto> TO_DTO =
             reservation -> new ReservationDto(reservation.getId(), reservation.getCustomerId(), reservation.getRoomId(), new PeriodDto(reservation.getStartDate(), reservation.getEndDate()));
@@ -50,20 +48,16 @@ public class ReservationService {
         Instant endDate = addReservationCmd.getEndDate();
         Period period = new Period(startDate, endDate);
         UUID customerId = addReservationCmd.getCustomerId();
-        Optional<Customer> maybeCustomer = customerRepository.findById(customerId);
-        if (!maybeCustomer.isPresent()) {
-            throw new IllegalArgumentException("Customer with id " + customerId + " not found");
-        }
+        customerRepository.findById(customerId).orElseThrow(() -> new IllegalArgumentException("Customer with id " + customerId + " not found"));
         UUID roomId = addReservationCmd.getRoomId();
-        Optional<Room> maybeRoom = roomRepository.findById(roomId);
-        if (!maybeRoom.isPresent()) {
-            throw new IllegalArgumentException("Room with id " + roomId + " not found");
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new IllegalArgumentException("Room with id " + roomId + " not found"));
+
+        if (!room.isAvailableWithin(period)) {
+            throw new RoomUnavailableDuringPeriodException(roomId, period);
         }
-        if (maybeRoom.get().isAvailableWithin(period)) {
-            Reservation reservation = reservationRepository.save(new Reservation(customerId, roomId, startDate, endDate));
-            return TO_DTO.apply(reservation);
-        }
-        throw new RoomUnavailableDuringPeriodException(roomId, period);
+
+        Reservation reservation = reservationRepository.save(new Reservation(customerId, roomId, startDate, endDate));
+        return TO_DTO.apply(reservation);
     }
 
     @Transactional
